@@ -1,0 +1,96 @@
+{
+    "builders": [
+        {
+            "boot_command": [
+                " <wait>",
+                " <wait>",
+                " <wait>",
+                " <wait>",
+                " <wait>",
+                "<esc><wait>",
+                "<f6><wait>",
+                "<esc><wait>",
+                "<bs><bs><bs><bs><wait>",
+                " autoinstall<wait5>",
+                " ds=nocloud-net<wait5>",
+                ";s=http://<wait5>{{.HTTPIP}}<wait5>:{{.HTTPPort}}/<wait5>",
+                " ---<wait5>",
+                "<enter><wait5>"
+            ],
+            "boot_wait": "5s",
+            "cpus": "{{ user `cpus` }}",
+            "disk_size": "{{user `disk_size`}}",
+            "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+            "guest_additions_url": "{{ user `guest_additions_url` }}",
+            "guest_os_type": "Ubuntu_64",
+            "hard_drive_interface": "sata",
+            "headless": "{{ user `headless` }}",
+            "http_directory": "{{user `http_directory`}}",
+            "iso_checksum": "{{user `iso_checksum`}}",
+            "iso_urls": [
+                "{{user `iso_local_url`}}",
+                "{{user `iso_download_url`}}" 
+              ],
+            "memory": "{{ user `memory` }}",
+            "output_directory": "{{ user `build_directory` }}/packer-{{user `vm_name`}}-virtualbox",
+            "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
+            "ssh_password": "vagrant",
+            "ssh_port": 22,
+            "ssh_timeout": "10000s",
+            "ssh_username": "vagrant",
+            "type": "virtualbox-iso",
+            "virtualbox_version_file": ".vbox_version",
+            "vm_name": "{{ user `vm_name` }}"
+        }
+    ],
+    "post-processors": [
+        {
+            "output": "{{ user `build_directory` }}/{{user `box_basename`}}.{{.Provider}}.box",
+            "type": "vagrant"
+        }
+    ],
+    "provisioners": [
+        {
+            "environment_vars": [
+                "HOME_DIR=/home/vagrant",
+                "http_proxy={{user `http_proxy`}}",
+                "https_proxy={{user `https_proxy`}}",
+                "no_proxy={{user `no_proxy`}}"
+            ],
+            "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
+            "expect_disconnect": true,
+            "scripts": [
+                "scripts/update.sh",
+                "scripts/motd.sh",
+                "scripts/sshd.sh",
+                "scripts/networking.sh",
+                "scripts/sudoers.sh",
+                "scripts/vagrant.sh",
+                "scripts/virtualbox.sh",
+                "scripts/cleanup.sh",
+                "scripts/minimize.sh"
+            ],
+            "type": "shell"
+        }
+    ],
+    "variables": {
+        "box_basename": "ubuntu-20.04-live",
+        "build_directory": "builds",
+        "cpus": "1",
+        "memory": "1536",
+        "disk_size": "8192",
+        "git_revision": "__unknown_git_revision__",
+        "headless": "false",
+        "http_directory": "http",
+        "http_proxy": "{{env `http_proxy`}}",
+        "https_proxy": "{{env `https_proxy`}}",
+        "iso_local_url": "iso/ubuntu-20.04.2-live-server-amd64.iso",
+        "iso_download_url": "https://releases.ubuntu.com/20.04/ubuntu-20.04.2-live-server-amd64.iso",
+        "iso_checksum": "sha256:d1f2bf834bbe9bb43faf16f9be992a6f3935e65be0edece1dee2aa6eb1767423",
+        "mirror": "http://releases.ubuntu.com",
+        "mirror_directory": "20.04",
+        "name": "ubuntu-20.04-live",
+        "no_proxy": "{{env `no_proxy`}}",
+        "vm_name": "ubuntu-server-20-04"
+    }
+}
